@@ -115,11 +115,12 @@ void CIOTestDlg::OnBnClickedRead()
 		return;
 	}
 	dwAddr = wcstoul(str,0,16);
-	if (dwAddr < 0x9FFFFFFF)
+	BOOL  b= GetPhysLong((LPBYTE)&dwAddr,&dwValue);
+	if (!b)
 	{
+		MessageBox(TEXT("This address is unaccessible"),TEXT("Access Error"),MB_ICONERROR);
 		return;
 	}
-	BOOL b = GetPhysLong((LPBYTE)&dwAddr,&dwValue);
 	str.Format(TEXT("0x%08x"),dwValue);
 	SetDlgItemText(IDC_EDIT2,str);
 }
@@ -136,7 +137,7 @@ void CIOTestDlg::OnBnClickedWrite()
 		return;
 	}
 	dwAddr = wcstoul(str,0,16);
-	if (dwAddr < 0x9FFFFFFF)
+	if (dwAddr < 1)
 	{
 		return;
 	}
@@ -148,9 +149,9 @@ void CIOTestDlg::OnBnClickedWrite()
 		return;
 	}
 	dwValue = wcstoul(str,0,16);
-	if (dwValue == 0)
-	{
-		return;
-	}
 	BOOL b = SetPhysLong((LPBYTE)&dwAddr,dwValue);
+	if (!b)
+	{
+		MessageBox(TEXT("This address is unaccessible"),TEXT("Access Error"),MB_ICONERROR);
+	}
 }

@@ -55,6 +55,7 @@ BOOL GetPhysLong(PBYTE pbPhysAddr, PDWORD pdwPhysVal)
 {
 	PDWORD pdwLinAddr;
 	tagPhysStruct PhysStruct;
+	BOOL bAccessible = FALSE;
 
 	if (!IsWinIoInitialized)
 		return FALSE;
@@ -75,12 +76,16 @@ BOOL GetPhysLong(PBYTE pbPhysAddr, PDWORD pdwPhysVal)
 
 	if (pdwLinAddr == NULL)
 		return FALSE;
+	bAccessible = !IsBadReadPtr(pdwLinAddr,4);
 
-	*pdwPhysVal = *pdwLinAddr;
+	if (bAccessible)
+	{
+		*pdwPhysVal = *pdwLinAddr;
+	}
 
 	UnmapPhysicalMemory(PhysStruct);
 
-	return TRUE;
+	return bAccessible;
 }
 
 
@@ -88,19 +93,13 @@ BOOL SetPhysLong(PBYTE pbPhysAddr, DWORD dwPhysVal)
 {
 	PDWORD pdwLinAddr;
 	tagPhysStruct PhysStruct;
+	BOOL bAccessible = FALSE;
 
 	if (!IsWinIoInitialized)
 		return FALSE;
 
-	if (g_Is64BitOS)
-	{
-		PhysStruct.pvPhysAddress = (DWORD64)*(DWORD*)pbPhysAddr;
-	}
-	else
-	{
-		// Avoid sign extension issues
-		PhysStruct.pvPhysAddress = (DWORD64)*(DWORD*)pbPhysAddr;
-	}
+	// Avoid sign extension issues
+	PhysStruct.pvPhysAddress = (DWORD64)*(DWORD*)pbPhysAddr;
 
 	PhysStruct.dwPhysMemSizeInBytes = 4;
 
@@ -109,9 +108,13 @@ BOOL SetPhysLong(PBYTE pbPhysAddr, DWORD dwPhysVal)
 	if (pdwLinAddr == NULL)
 		return FALSE;
 
-	*pdwLinAddr = dwPhysVal;
+	bAccessible = !IsBadWritePtr(pdwLinAddr,4);
+	if (bAccessible)
+	{
+		*pdwLinAddr = dwPhysVal;
+	}
 
 	UnmapPhysicalMemory(PhysStruct);
 
-	return TRUE;
+	return bAccessible;
 }
